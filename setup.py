@@ -4,12 +4,17 @@ Flask-Redislite
 
 Using Flask with Redislite
 """
+import io
 from setuptools import setup
 
+with io.open('README.rst', encoding='utf-8') as f:
+    description = f.read()
+with io.open('HISTORY.rst', encoding='utf-8') as f:
+    description += "\n\n%s" % f.read()
 
 setup(
     name='Flask-Redislite',
-    version='0.0.1',
+    version='0.0.2',
     url='https://github.com/scattm/FlaskRedislite',
     download_url='https://github.com/scattm/FlaskRedislite',
     license='MIT',

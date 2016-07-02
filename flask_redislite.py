@@ -40,18 +40,20 @@ class FlaskRedis(object):
         if app is not None:
             self.init_app(app)
 
-    def connect(self):
+    def _connect(self):
         return self.redis_class(current_app.config["{}PATH".format(self.config_prefix)])
 
     def init_app(self, app):
         if hasattr(app, 'teardown_appcontext'):
-            app.teardown_appcontext(self.teardown)
+            app.teardown_appcontext(self._teardown)
         else:
             # fall back
-            app.teardown_request(self.teardown)
+            app.teardown_request(self._teardown)
 
-    def teardown(self, exception):
+    def _teardown(self, exception):
         ctx = stack.top
+        if exception is not None:
+            print exception
         if hasattr(ctx, 'redislite_db'):
             ctx.redislite_db.shutdown()
 
@@ -60,7 +62,7 @@ class FlaskRedis(object):
         ctx = stack.top
         if ctx is not None:
             if not hasattr(ctx, 'redislite_db'):
-                ctx.redislite_db = self.connect()
+                ctx.redislite_db = self._connect()
 
                 if self.include_collections:
                     ctx.redislite_collection = Collection(ctx.redislite_db)
@@ -68,6 +70,8 @@ class FlaskRedis(object):
 
     @property
     def collection(self):
+        if not self.include_collections:
+            return None
         ctx = stack.top
         if ctx is not None:
             if not hasattr(ctx, 'redislite_collection'):

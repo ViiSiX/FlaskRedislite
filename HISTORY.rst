@@ -1,0 +1,13 @@
+History
+=======
+
+0.0.2 (3/7/2016)
+----------------
+- Add documents
+- Fix minor codes
+
+0.0.1 (2/7/2016)
+----------------
+
+- Initial package
+- Allow to use Redislite and redis-collections from Flask
