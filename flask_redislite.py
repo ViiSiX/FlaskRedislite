@@ -5,6 +5,9 @@ from flask import current_app
 from multiprocessing import Process
 
 
+__version__ = '0.0.3'
+
+
 try:
     from flask import _app_ctx_stack as stack
 except ImportError:
@@ -32,15 +35,19 @@ class Collection(object):
 class FlaskRedis(object):
     def __init__(self, app=None, **kwargs):
         self.app = app
+
         self.include_collections = kwargs.get('collections', False)
-        self.include_rq = kwargs.get('rq', False)
-        self.queues = kwargs.get('rq_queues', ['default'])
         strict = self.include_collections or kwargs.get('strict', False)
 
         self.redis_class = StrictRedis if strict else Redis
-        self._connection = None
+
+        self.include_rq = kwargs.get('rq', False)
+        if self.include_rq:
+            self.queues = kwargs.get('rq_queues', ['default'])
 
         self.config_prefix = kwargs.get('config_prefix', 'REDISLITE')
+
+        self._connection = None
 
         if app is not None:
             self.init_app(app)
@@ -87,10 +94,45 @@ class FlaskRedis(object):
                 ctx.redislite_queue = Queue(connection=self.connection)
             return ctx.redislite_queue
 
-    def get_worker(self):
+    def start_worker(self):
         if not self.include_rq:
             return None
-        print self.connection
-        return Worker(queues=self.queues,
-                      connection=self.connection)
+        worker = Worker(queues=self.queues,
+                        connection=self.connection)
+        worker_pid_path = current_app.config.get("{}_WORKER_PID".format(self.config_prefix), 'worker.pid')
 
+        try:
+            worker_pid_file = open(worker_pid_path)
+            worker_pid = int(worker_pid_file.read())
+            print "Worker already started with PID=%d" % worker_pid
+            worker_pid_file.close()
+        except (IOError, TypeError):
+            def worker_wrapper(worker_instance, pid_path):
+                import atexit
+                import signal
+                from os import remove
+
+                def exit_handler():
+                    remove(pid_path)
+
+                def signal_handler(signum, frame):
+                    remove(pid_path)
+
+                atexit.register(exit_handler)
+                signal.signal(signal.SIGINT, signal_handler)
+                signal.signal(signal.SIGTERM, signal_handler)
+
+                worker_instance.work()
+
+                remove(pid_path)
+
+            p = Process(target=worker_wrapper, kwargs={
+                'worker_instance': worker,
+                'pid_path': worker_pid_path
+            })
+            p.start()
+            worker_pid_file = open(worker_pid_path, 'w')
+            worker_pid_file.write("%d" % p.pid)
+            worker_pid_file.close()
+
+            print "Start a worker process with PID=%d" % p.pid
