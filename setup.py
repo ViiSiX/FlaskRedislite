@@ -14,7 +14,7 @@ with io.open('HISTORY.rst', encoding='utf-8') as f:
 
 setup(
     name='Flask-Redislite',
-    version='0.0.2',
+    version='0.0.3',
     url='https://github.com/scattm/FlaskRedislite',
     download_url='https://github.com/scattm/FlaskRedislite',
     license='MIT',
@@ -23,14 +23,16 @@ setup(
     maintainer='Trong-Nghia Nguyen',
     maintainer_email='ntngh2712@gmail.com',
     description='Using Flask with Redislite',
-    long_description=__doc__,
+    long_description=description,
     py_modules=['flask_redislite'],
     zip_safe=False,
     include_package_data=True,
     platforms='any',
     install_requires=[
         'Flask',
-        'redislite'
+        'redislite',
+        'redis-collections',
+        'rq'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

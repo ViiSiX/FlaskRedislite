@@ -44,3 +44,43 @@ Then use it on your view
     d = collection.dict('123456')
     d['foo'] = 'bar'
     print d
+
+RQ
+-----
+To use Flask-Redislite with RQ, you need to start RQ worker as a new process
+
+.. code-block:: python
+
+    from flask import Flask
+    from flask_redislite import FlaskRedislite
+
+    app = Flask(__name__)
+
+    rdb = FlaskRedislite(app, rq=True)
+
+    # Your other extensions load here
+    # ex: lm = LoginManager()
+    # ...
+
+    with app.app_context():
+        rdb.start_worker()
+
+    # your codes
+    # ex: views function
+
+    app.run()
+
+Then within your view enqueue the jobs:
+
+.. code-block:: python
+
+    import time
+
+    def simple_job():
+        time.sleep(2)
+        return 12345
+
+    queue = rdb.queue
+    queue.enqueue(simple_job, ttl=60, result_ttl=60, job_id='321')
+    sleep(5)
+    print queue.fetch_job('321').result
