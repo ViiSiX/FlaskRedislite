@@ -1,6 +1,8 @@
 from redislite import Redis, StrictRedis
 from redis_collections import Dict as RC_Dict, List as RC_List
+from rq import Queue, Worker
 from flask import current_app
+from multiprocessing import Process
 
 
 try:
@@ -31,17 +33,24 @@ class FlaskRedis(object):
     def __init__(self, app=None, **kwargs):
         self.app = app
         self.include_collections = kwargs.get('collections', False)
+        self.include_rq = kwargs.get('rq', False)
+        self.queues = kwargs.get('rq_queues', ['default'])
         strict = self.include_collections or kwargs.get('strict', False)
 
         self.redis_class = StrictRedis if strict else Redis
+        self._connection = None
 
-        self.config_prefix = kwargs.get('config_prefix','REDISLITE_')
+        self.config_prefix = kwargs.get('config_prefix', 'REDISLITE')
 
         if app is not None:
             self.init_app(app)
 
-    def _connect(self):
-        return self.redis_class(current_app.config["{}PATH".format(self.config_prefix)])
+    def connect(self):
+        if self._connection is None:
+            self._connection = self.redis_class(
+                current_app.config["{}_PATH".format(self.config_prefix)]
+            )
+        return self._connection
 
     def init_app(self, app):
         if hasattr(app, 'teardown_appcontext'):
@@ -51,22 +60,12 @@ class FlaskRedis(object):
             app.teardown_request(self._teardown)
 
     def _teardown(self, exception):
-        ctx = stack.top
         if exception is not None:
             print exception
-        if hasattr(ctx, 'redislite_db'):
-            ctx.redislite_db.shutdown()
 
     @property
     def connection(self):
-        ctx = stack.top
-        if ctx is not None:
-            if not hasattr(ctx, 'redislite_db'):
-                ctx.redislite_db = self._connect()
-
-                if self.include_collections:
-                    ctx.redislite_collection = Collection(ctx.redislite_db)
-            return ctx.redislite_db
+        return self.connect()
 
     @property
     def collection(self):
@@ -75,5 +74,23 @@ class FlaskRedis(object):
         ctx = stack.top
         if ctx is not None:
             if not hasattr(ctx, 'redislite_collection'):
-                ctx.redislite_collection = Collection(self.connection)
+                ctx.redislite_collection = Collection(redis=self.connection)
             return ctx.redislite_collection
+
+    @property
+    def queue(self):
+        if not self.include_rq:
+            return None
+        ctx = stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'redislite_queue'):
+                ctx.redislite_queue = Queue(connection=self.connection)
+            return ctx.redislite_queue
+
+    def get_worker(self):
+        if not self.include_rq:
+            return None
+        print self.connection
+        return Worker(queues=self.queues,
+                      connection=self.connection)
+
