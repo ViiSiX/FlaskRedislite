@@ -5,7 +5,7 @@ from flask import current_app
 from multiprocessing import Process
 
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 
 try:
@@ -44,6 +44,7 @@ class FlaskRedis(object):
         self.include_rq = kwargs.get('rq', False)
         if self.include_rq:
             self.queues = kwargs.get('rq_queues', ['default'])
+            self.worker_process = None
 
         self.config_prefix = kwargs.get('config_prefix', 'REDISLITE')
 
@@ -52,19 +53,19 @@ class FlaskRedis(object):
         if app is not None:
             self.init_app(app)
 
-    def connect(self):
-        if self._connection is None:
-            self._connection = self.redis_class(
-                current_app.config["{}_PATH".format(self.config_prefix)]
-            )
-        return self._connection
-
     def init_app(self, app):
         if hasattr(app, 'teardown_appcontext'):
             app.teardown_appcontext(self._teardown)
         else:
             # fall back
             app.teardown_request(self._teardown)
+
+    def connect(self):
+        if self._connection is None:
+            self._connection = self.redis_class(
+                current_app.config["{}_PATH".format(self.config_prefix)]
+            )
+        return self._connection
 
     def _teardown(self, exception):
         if exception is not None:
@@ -99,7 +100,7 @@ class FlaskRedis(object):
             return None
         worker = Worker(queues=self.queues,
                         connection=self.connection)
-        worker_pid_path = current_app.config.get("{}_WORKER_PID".format(self.config_prefix), 'worker.pid')
+        worker_pid_path = current_app.config.get("{}_WORKER_PID".format(self.config_prefix), 'rl_worker.pid')
 
         try:
             worker_pid_file = open(worker_pid_path)
@@ -126,13 +127,16 @@ class FlaskRedis(object):
 
                 remove(pid_path)
 
-            p = Process(target=worker_wrapper, kwargs={
+            self.worker_process = Process(target=worker_wrapper, kwargs={
                 'worker_instance': worker,
                 'pid_path': worker_pid_path
             })
-            p.start()
+            self.worker_process.start()
             worker_pid_file = open(worker_pid_path, 'w')
-            worker_pid_file.write("%d" % p.pid)
+            worker_pid_file.write("%d" % self.worker_process.pid)
             worker_pid_file.close()
 
-            print "Start a worker process with PID=%d" % p.pid
+            print "Start a worker process with PID=%d" % self.worker_process.pid
+
+    def commit(self):
+        self.connection.bgsave()

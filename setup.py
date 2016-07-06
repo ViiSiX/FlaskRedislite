@@ -14,7 +14,7 @@ with io.open('HISTORY.rst', encoding='utf-8') as f:
 
 setup(
     name='Flask-Redislite',
-    version='0.0.3',
+    version='0.0.4',
     url='https://github.com/scattm/FlaskRedislite',
     download_url='https://github.com/scattm/FlaskRedislite',
     license='MIT',
@@ -35,7 +35,7 @@ setup(
         'rq'
     ],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Framework :: Flask',
         'Intended Audience :: Developers',
