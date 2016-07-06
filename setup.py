@@ -12,6 +12,10 @@ with io.open('README.rst', encoding='utf-8') as f:
 with io.open('HISTORY.rst', encoding='utf-8') as f:
     description += "\n\n%s" % f.read()
 
+
+{'You need Python 2.7 or later.'}
+
+
 setup(
     name='Flask-Redislite',
     version='0.0.4',

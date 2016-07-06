@@ -1,6 +1,5 @@
 language: python
 python:
-  - 2.6
   - 2.7
 install:
   - pip install -r requirements.txt
@@ -9,9 +8,6 @@ script:
 after_success: coveralls
 matrix:
   include:
-  - os: linux
-    dist: trusty
-    python: '2.6'
   - os: linux
     dist: trusty
     python: '2.7'
