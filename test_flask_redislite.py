@@ -1,8 +1,8 @@
 import flask
 import pytest
 import time
+import flask_redislite
 from os import remove, path
-from flask_redislite import FlaskRedis
 from redislite import Redis, StrictRedis
 
 
@@ -37,7 +37,7 @@ def test_constructor(app):
     """
     - Test if the connection is created and using Redis class
     """
-    rdb = FlaskRedis(app)
+    rdb = flask_redislite.FlaskRedis(app)
     with app.app_context():
         assert isinstance(rdb.connection, Redis)
         assert rdb.connection.socket_file is not None
@@ -47,7 +47,7 @@ def test_constructor_strict(app):
     """
     - Test if the connection is created and using StrictRedis class
     """
-    rdb = FlaskRedis(app, strict=True)
+    rdb = flask_redislite.FlaskRedis(app, strict=True)
     with app.app_context():
         assert isinstance(rdb.connection, StrictRedis)
         assert rdb.connection.socket_file is not None
@@ -58,7 +58,7 @@ def test_constructor_redis_collections(app):
     - Test if the connection is created and using StrictRedis class
     - Check if the collection is created
     """
-    rdb = FlaskRedis(app, collections=True)
+    rdb = flask_redislite.FlaskRedis(app, collections=True)
     with app.app_context():
         assert isinstance(rdb.connection, StrictRedis)
         assert rdb.connection.socket_file is not None
@@ -72,7 +72,7 @@ def test_constructor_rq(app):
     - Check if the worker pid file is created
     - Check if the worker pid file is cleaned up after terminated
     """
-    rdb = FlaskRedis(app, rq=True)
+    rdb = flask_redislite.FlaskRedis(app, rq=True)
     assert not path.isfile(app.config.get('REDISLITE_WORKER_PID'))
 
     with app.app_context():
@@ -94,7 +94,7 @@ def test_config_prefix(app):
     """
     - If the constructor is called without app object, no connection
     """
-    rdb = FlaskRedis(config_prefix='RL')
+    rdb = flask_redislite.FlaskRedis(config_prefix='RL')
 
     with app.app_context():
         assert isinstance(rdb.connection, Redis)
@@ -105,7 +105,7 @@ def test_commit(app):
     """
     - If commit, check if rdb file exists
     """
-    rdb = FlaskRedis()
+    rdb = flask_redislite.FlaskRedis()
 
     with app.app_context():
         rdb.commit()
@@ -117,7 +117,7 @@ def test_redis_set_get(app):
     """
     - Test if we can set and get values from Redislite
     """
-    rdb = FlaskRedis(app)
+    rdb = flask_redislite.FlaskRedis(app)
 
     with app.app_context():
         rdb.connection.set('foo1', 'aiKjq91jUyq3r')
@@ -128,7 +128,7 @@ def test_redis_collections(app):
     """
     - Test if we can set and get values using Redis-Collections
     """
-    rdb = FlaskRedis(app, collections=True)
+    rdb = flask_redislite.FlaskRedis(app, collections=True)
 
     with app.app_context():
         collection = rdb.collection
@@ -150,7 +150,7 @@ def test_rq(app):
     """
     - Test if we can enqueue a simple job and get result from it
     """
-    rdb = FlaskRedis(app, rq=True)
+    rdb = flask_redislite.FlaskRedis(app, rq=True)
 
     with app.app_context():
         rdb.start_worker()

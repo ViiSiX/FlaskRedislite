@@ -4,7 +4,7 @@ python:
 install:
   - pip install -r requirements.txt
 script:
-  - py.test test_flask_redislite.py --pep8 coveralls -v --cov coveralls --cov-report term-missing
+  - py.test test_flask_redislite.py --pep8 flask_redislite.py -v --cov flask_redislite --cov-report term-missing
 after_success: coveralls
 matrix:
   include:
