@@ -5,6 +5,9 @@ Flask-Redislite
     :target: https://travis-ci.org/scattm/FlaskRedislite
 .. image:: https://coveralls.io/repos/github/scattm/FlaskRedislite/badge.svg?branch=master
     :target: https://coveralls.io/github/scattm/FlaskRedislite?branch=master
+.. image:: https://landscape.io/github/scattm/FlaskRedislite/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/scattm/FlaskRedislite/master
+   :alt: Code Health
 
 Using Flask with Redislite, also redis-collections.
 
