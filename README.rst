@@ -1,6 +1,11 @@
 Flask-Redislite
 ===============
 
+.. image:: https://travis-ci.org/scattm/FlaskRedislite.svg?branch=master
+    :target: https://travis-ci.org/scattm/FlaskRedislite
+.. image:: https://coveralls.io/repos/github/scattm/FlaskRedislite/badge.svg?branch=master
+    :target: https://coveralls.io/github/scattm/FlaskRedislite?branch=master
+
 Using Flask with Redislite, also redis-collections.
 
 Installation
