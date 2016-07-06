@@ -5,6 +5,7 @@ Flask-Redislite
 Using Flask with Redislite
 """
 import io
+from sys import version
 from setuptools import setup
 
 with io.open('README.rst', encoding='utf-8') as f:
@@ -13,7 +14,7 @@ with io.open('HISTORY.rst', encoding='utf-8') as f:
     description += "\n\n%s" % f.read()
 
 
-{'You need Python 2.7 or later.'}
+assert int(version[0]) >= 2 and int(version[2]) > 6
 
 
 setup(

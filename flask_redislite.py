@@ -1,3 +1,10 @@
+"""
+Flask-Redislite
+---------------
+
+Add Redislite support to Flask with addition redis-collections
+and RQ.
+"""
 from redislite import Redis, StrictRedis
 from redis_collections import Dict as RC_Dict, List as RC_List
 from rq import Queue, Worker
@@ -16,6 +23,10 @@ except ImportError:
 
 
 class Collection(object):
+    """
+    Wrapper class for redis-collections
+    """
+
     def __init__(self, redis):
         self._redis = redis
 
@@ -33,7 +44,15 @@ class Collection(object):
 
 
 class FlaskRedis(object):
+    """
+    Main class for Flask-Redislite
+    """
+
     def __init__(self, app=None, **kwargs):
+        """
+        :param app: Flask's app
+        :param kwargs: strict, config_prefix, collections, rq, rq_queues
+        """
         self.app = app
 
         self.include_collections = kwargs.get('collections', False)
@@ -50,30 +69,16 @@ class FlaskRedis(object):
 
         self._connection = None
 
-        if app is not None:
-            self.init_app(app)
-
-    def init_app(self, app):
-        if hasattr(app, 'teardown_appcontext'):
-            app.teardown_appcontext(self._teardown)
-        else:
-            # fall back
-            app.teardown_request(self._teardown)
-
     def connect(self):
-        if self._connection is None:
-            self._connection = self.redis_class(
-                current_app.config["{}_PATH".format(self.config_prefix)]
-            )
-        return self._connection
-
-    def _teardown(self, exception):
-        if exception is not None:
-            print exception
+        self._connection = self.redis_class(
+            current_app.config["{}_PATH".format(self.config_prefix)]
+        )
 
     @property
     def connection(self):
-        return self.connect()
+        if self._connection is None:
+            self.connect()
+        return self._connection
 
     @property
     def collection(self):
@@ -96,11 +101,16 @@ class FlaskRedis(object):
             return ctx.redislite_queue
 
     def start_worker(self):
+        """
+        Trigger new process as a RQ worker.
+        """
         if not self.include_rq:
             return None
         worker = Worker(queues=self.queues,
                         connection=self.connection)
-        worker_pid_path = current_app.config.get("{}_WORKER_PID".format(self.config_prefix), 'rl_worker.pid')
+        worker_pid_path = current_app.config.get(
+            "{}_WORKER_PID".format(self.config_prefix), 'rl_worker.pid'
+        )
 
         try:
             worker_pid_file = open(worker_pid_path)
@@ -109,14 +119,27 @@ class FlaskRedis(object):
             worker_pid_file.close()
         except (IOError, TypeError):
             def worker_wrapper(worker_instance, pid_path):
+                """
+                A wrapper to start RQ worker as a new process.
+                :param worker_instance: RQ's worker instance
+                :param pid_path: A file to check if the worker
+                    is running or not
+                """
                 import atexit
                 import signal
                 from os import remove
 
                 def exit_handler():
+                    """
+                    Remove pid file on exit (Windows)
+                    """
                     remove(pid_path)
 
-                def signal_handler(signum, frame):
+                def signal_handler(*args):
+                    """
+                    Remove pid file on exit (*nix)
+                    """
+                    print "Exit py signal {signal}".format(signal=args[0])
                     remove(pid_path)
 
                 atexit.register(exit_handler)
@@ -125,6 +148,7 @@ class FlaskRedis(object):
 
                 worker_instance.work()
 
+                # Remove pid file if the process can not catch signals
                 remove(pid_path)
 
             self.worker_process = Process(target=worker_wrapper, kwargs={
@@ -136,7 +160,11 @@ class FlaskRedis(object):
             worker_pid_file.write("%d" % self.worker_process.pid)
             worker_pid_file.close()
 
-            print "Start a worker process with PID=%d" % self.worker_process.pid
+            print "Start a worker process with PID=%d" % \
+                  self.worker_process.pid
 
     def commit(self):
+        """
+        Saving data from memory to disk.
+        """
         self.connection.bgsave()
