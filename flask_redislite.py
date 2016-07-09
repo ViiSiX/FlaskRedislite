@@ -9,7 +9,7 @@ import atexit
 import signal
 from flask import current_app
 from multiprocessing import Process
-from os import remove
+from os import remove, path
 from redislite import Redis, StrictRedis
 from redis_collections import Dict as RC_Dict, List as RC_List
 from rq import Queue, Worker
@@ -95,18 +95,27 @@ class FlaskRedis(object):
 
         self.config_prefix = kwargs.get('config_prefix', 'REDISLITE')
 
-        self._connection = None
+        self._rdb = None
 
     def connect(self):
-        self._connection = self.redis_class(
-            current_app.config["{}_PATH".format(self.config_prefix)]
-        )
+        try:
+            settings_file = open("%s.settings" % current_app.config[
+                "{}_PATH".format(self.config_prefix)
+            ], 'r')
+            self._rdb = self.redis_class(
+                current_app.config["{}_PATH".format(self.config_prefix)],
+                serverconfig=eval(settings_file.read())
+            )
+        except IOError:
+            self._rdb = self.redis_class(
+                current_app.config["{}_PATH".format(self.config_prefix)]
+            )
 
     @property
     def connection(self):
-        if self._connection is None:
+        if self._rdb is None:
             self.connect()
-        return self._connection
+        return self._rdb
 
     @property
     def collection(self):
@@ -142,7 +151,7 @@ class FlaskRedis(object):
         )
 
         try:
-            worker_pid_file = open(worker_pid_path)
+            worker_pid_file = open(worker_pid_path, 'r')
             worker_pid = int(worker_pid_file.read())
             print "Worker already started with PID=%d" % worker_pid
             worker_pid_file.close()

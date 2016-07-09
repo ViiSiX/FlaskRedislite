@@ -12,7 +12,7 @@ def app():
     app.config.update({
         'REDISLITE_PATH': 'frl.rdb',
         'REDISLITE_WORKER_PID': 'worker.pid',
-        'RL_PATH': 'worker1.rdb'
+        'RL_PATH': 'frl1.rdb'
     })
 
     try:
@@ -110,7 +110,7 @@ def test_commit(app):
     with app.app_context():
         rdb.commit()
         time.sleep(0.5)
-        assert path.isfile(app.config.get('REDISLITE_PATH'))
+        assert path.isfile(flask.current_app.config.get('REDISLITE_PATH'))
 
 
 def test_redis_set_get(app):
