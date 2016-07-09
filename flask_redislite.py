@@ -5,11 +5,14 @@ Flask-Redislite
 Add Redislite support to Flask with addition redis-collections
 and RQ.
 """
+import atexit
+import signal
+from flask import current_app
+from multiprocessing import Process
+from os import remove
 from redislite import Redis, StrictRedis
 from redis_collections import Dict as RC_Dict, List as RC_List
 from rq import Queue, Worker
-from flask import current_app
-from multiprocessing import Process
 
 
 __version__ = '0.0.5'
@@ -20,6 +23,31 @@ try:
 except ImportError:
     # fall back
     from flask import _request_ctx_stack as stack
+
+
+def worker_wrapper(worker_instance, pid_path):
+    """
+    A wrapper to start RQ worker as a new process.
+    :param worker_instance: RQ's worker instance
+    :param pid_path: A file to check if the worker
+        is running or not
+    """
+    def exit_handler(*args):
+        """
+        Remove pid file on exit
+        """
+        if len(args) > 0:
+            print "Exit py signal {signal}".format(signal=args[0])
+        remove(pid_path)
+
+    atexit.register(exit_handler)
+    signal.signal(signal.SIGINT, exit_handler)
+    signal.signal(signal.SIGTERM, exit_handler)
+
+    worker_instance.work()
+
+    # Remove pid file if the process can not catch signals
+    exit_handler(2)
 
 
 class Collection(object):
@@ -122,34 +150,6 @@ class FlaskRedis(object):
             return worker_pid
 
         except (IOError, TypeError):
-            def worker_wrapper(worker_instance, pid_path):
-                """
-                A wrapper to start RQ worker as a new process.
-                :param worker_instance: RQ's worker instance
-                :param pid_path: A file to check if the worker
-                    is running or not
-                """
-                import atexit
-                import signal
-                from os import remove
-
-                def exit_handler(*args):
-                    """
-                    Remove pid file on exit
-                    """
-                    if len(args) > 0:
-                        print "Exit py signal {signal}".format(signal=args[0])
-                    remove(pid_path)
-
-                atexit.register(exit_handler)
-                signal.signal(signal.SIGINT, exit_handler)
-                signal.signal(signal.SIGTERM, exit_handler)
-
-                worker_instance.work()
-
-                # Remove pid file if the process can not catch signals
-                exit_handler(2)
-
             self.worker_process = Process(target=worker_wrapper, kwargs={
                 'worker_instance': worker,
                 'pid_path': worker_pid_path

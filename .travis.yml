@@ -9,10 +9,5 @@ install:
   - pip install -r requirements.txt
   - pip install -I Flask==$FLASK_VERSION
 script:
-  - py.test test_flask_redislite.py --pep8 flask_redislite.py -v --cov flask_redislite --cov-report term-missing
+  - py.test test_flask_redislite.py --pep8 flask_redislite.py -v --cov flask_redislite.py --cov-report term-missing
 after_success: coveralls
-matrix:
-  include:
-  - os: linux
-    dist: trusty
-    python: '2.7'
