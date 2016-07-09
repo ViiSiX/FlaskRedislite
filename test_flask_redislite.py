@@ -145,6 +145,21 @@ def test_redis_collections(app):
         assert not isinstance(l, list)
         assert l[0] == 'foo3 is kua3D'
 
+    time.sleep(0.5)
+
+    with app.app_context():
+        collection = rdb.collection
+
+        # Get Dict
+        d = collection.get_dict('foo_dict')
+        assert not isinstance(d, dict)
+        assert d == {'foo2': '28bH-76R-26A'}
+
+        # Get List
+        l = collection.get_list('foo_list')
+        assert not isinstance(l, list)
+        assert l[0] == 'foo3 is kua3D'
+
 
 def test_rq(app):
     """
@@ -168,6 +183,47 @@ def test_rq(app):
     with app.app_context():
         queue = rdb.queue
         assert queue.fetch_job('foo4').result == simple_job()
+
+    # Clean up
+    rdb.worker_process.terminate()
+
+
+def test_non_collection(app):
+    """
+    - Test if collection can created or not. Normally it should not be.
+    """
+    rdb = flask_redislite.FlaskRedis(app)
+
+    with app.app_context():
+        assert rdb.collection is None
+
+
+def test_non_rq(app):
+    """
+    - Test if rq can created or not. Normally it should not be.
+    """
+    rdb = flask_redislite.FlaskRedis(app)
+
+    with app.app_context():
+        assert rdb.start_worker() is None
+        assert rdb.queue is None
+
+
+def test_existed_worker(app):
+    """
+    - Test if another worker will pawned if it's already started.
+    """
+    rdb = flask_redislite.FlaskRedis(app, rq=True)
+
+    with app.app_context():
+        pid = rdb.start_worker()
+        assert pid > 0
+
+    time.sleep(0.5)
+
+    with app.app_context():
+        new_pid = rdb.start_worker()
+        assert pid == new_pid
 
     # Clean up
     rdb.worker_process.terminate()

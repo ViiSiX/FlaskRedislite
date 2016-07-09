@@ -12,7 +12,7 @@ from flask import current_app
 from multiprocessing import Process
 
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 
 try:
@@ -106,6 +106,7 @@ class FlaskRedis(object):
         """
         if not self.include_rq:
             return None
+
         worker = Worker(queues=self.queues,
                         connection=self.connection)
         worker_pid_path = current_app.config.get(
@@ -117,6 +118,9 @@ class FlaskRedis(object):
             worker_pid = int(worker_pid_file.read())
             print "Worker already started with PID=%d" % worker_pid
             worker_pid_file.close()
+
+            return worker_pid
+
         except (IOError, TypeError):
             def worker_wrapper(worker_instance, pid_path):
                 """
@@ -129,27 +133,22 @@ class FlaskRedis(object):
                 import signal
                 from os import remove
 
-                def exit_handler():
+                def exit_handler(*args):
                     """
-                    Remove pid file on exit (Windows)
+                    Remove pid file on exit
                     """
-                    remove(pid_path)
-
-                def signal_handler(*args):
-                    """
-                    Remove pid file on exit (*nix)
-                    """
-                    print "Exit py signal {signal}".format(signal=args[0])
+                    if len(args) > 0:
+                        print "Exit py signal {signal}".format(signal=args[0])
                     remove(pid_path)
 
                 atexit.register(exit_handler)
-                signal.signal(signal.SIGINT, signal_handler)
-                signal.signal(signal.SIGTERM, signal_handler)
+                signal.signal(signal.SIGINT, exit_handler)
+                signal.signal(signal.SIGTERM, exit_handler)
 
                 worker_instance.work()
 
                 # Remove pid file if the process can not catch signals
-                remove(pid_path)
+                exit_handler(2)
 
             self.worker_process = Process(target=worker_wrapper, kwargs={
                 'worker_instance': worker,
@@ -162,6 +161,8 @@ class FlaskRedis(object):
 
             print "Start a worker process with PID=%d" % \
                   self.worker_process.pid
+
+            return self.worker_process.pid
 
     def commit(self):
         """
