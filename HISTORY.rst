@@ -1,6 +1,16 @@
 History
 =======
 
+0.1.0 (31/8/2016)
+-----------------
+- Support multiple queue
+
+0.0.5 (9/7/2016)
+----------------
+- Better test coverage
+- Apply PEP8
+- Resume lost Redislite process on restart, interrupted exit
+
 0.0.4 (6/7/2016)
 ----------------
 - Add test

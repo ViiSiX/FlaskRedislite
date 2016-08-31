@@ -173,7 +173,9 @@ def test_rq(app):
     # Simulate the request
     with app.app_context():
         queue = rdb.queue
-        job = queue.enqueue(simple_job, ttl=60, result_ttl=60, job_id='foo4')
+        job = queue['default'].enqueue(simple_job, ttl=60,
+                                       result_ttl=60, job_id='foo4'
+                                       )
         assert job.result is None
         time.sleep(1)
         assert job.result == simple_job()
@@ -182,7 +184,7 @@ def test_rq(app):
     time.sleep(0.5)
     with app.app_context():
         queue = rdb.queue
-        assert queue.fetch_job('foo4').result == simple_job()
+        assert queue['default'].fetch_job('foo4').result == simple_job()
 
     # Clean up
     rdb.worker_process.terminate()

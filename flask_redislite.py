@@ -16,7 +16,7 @@ from redis_collections import Dict as RC_Dict, List as RC_List
 from rq import Queue, Worker
 
 
-__version__ = '0.0.5'
+__version__ = '0.1.0rc0'
 
 
 try:
@@ -165,7 +165,12 @@ class FlaskRedis(object):
         ctx = stack.top
         if ctx is not None:
             if not hasattr(ctx, 'redislite_queue'):
-                ctx.redislite_queue = Queue(connection=self.connection)
+                ctx.redislite_queue = {}
+
+                for queue_name in self.queues:
+                    ctx.redislite_queue[queue_name] = \
+                        Queue(queue_name, connection=self.connection)
+
             return ctx.redislite_queue
 
     def start_worker(self):

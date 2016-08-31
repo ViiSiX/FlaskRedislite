@@ -89,6 +89,6 @@ Then within your view enqueue the jobs:
         return 12345
 
     queue = rdb.queue
-    queue.enqueue(simple_job, ttl=60, result_ttl=60, job_id='321')
+    queue['default'].enqueue(simple_job, ttl=60, result_ttl=60, job_id='321')
     sleep(5)
-    print queue.fetch_job('321').result
+    print queue['default'].fetch_job('321').result

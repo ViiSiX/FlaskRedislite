@@ -19,7 +19,7 @@ assert int(version[0]) >= 2 and int(version[2]) > 6
 
 setup(
     name='Flask-Redislite',
-    version='0.0.5',
+    version='0.1.0rc0',
     url='https://github.com/scattm/FlaskRedislite',
     download_url='https://github.com/scattm/FlaskRedislite',
     license='MIT',
@@ -40,7 +40,7 @@ setup(
         'rq'
     ],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Flask',
         'Intended Audience :: Developers',
