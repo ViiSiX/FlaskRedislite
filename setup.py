@@ -15,19 +15,18 @@ with io.open('HISTORY.rst', encoding='utf-8') as f:
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 with open('flask_redislite.py', 'rb') as f:
-    version = str(_version_re.search(f.read().decode('utf-8')).group(1))
-
+    version = str(_version_re.search(f.read().decode('utf-8')).group(1)).replace('\'', '')
 
 setup(
     name='Flask-Redislite',
     version=version,
-    url='https://github.com/scattm/FlaskRedislite',
-    download_url='https://github.com/scattm/FlaskRedislite',
+    url='https://github.com/ViiSiX/FlaskRedislite',
+    download_url='https://github.com/ViiSiX/FlaskRedislite',
     license='MIT',
     author='Trong-Nghia Nguyen',
-    author_email='ntngh2712@gmail.com',
+    author_email='nghia@viisix.space',
     maintainer='Trong-Nghia Nguyen',
-    maintainer_email='ntngh2712@gmail.com',
+    maintainer_email='nghia@viisix.space',
     description='Using Flask with Redislite',
     long_description=description,
     py_modules=['flask_redislite'],
