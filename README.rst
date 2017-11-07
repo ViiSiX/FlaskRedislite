@@ -1,15 +1,13 @@
 Flask-Redislite
 ===============
 
-.. image:: https://travis-ci.org/scattm/FlaskRedislite.svg?branch=master
-    :target: https://travis-ci.org/scattm/FlaskRedislite
-.. image:: https://coveralls.io/repos/github/scattm/FlaskRedislite/badge.svg?branch=master
-    :target: https://coveralls.io/github/scattm/FlaskRedislite?branch=master
-.. image:: https://landscape.io/github/scattm/FlaskRedislite/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/scattm/FlaskRedislite/master
+.. image:: https://travis-ci.org/ViiSiX/FlaskRedislite.svg?branch=master
+    :target: https://travis-ci.org/ViiSiX/FlaskRedislite
+.. image:: https://landscape.io/github/ViiSiX/FlaskRedislite/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/ViiSiX/FlaskRedislite/master
    :alt: Code Health
 
-Using Flask with Redislite, also redis-collections.
+Using Flask with *Redislite*, also *redis-collections* and *rq*.
 
 Installation
 ------------
@@ -32,13 +30,13 @@ Create new redis instance within your application
 .. code-block:: python
 
     from flask import Flask
-    from flask_redislite import FlaskRedislite
+    from flask_redislite import FlaskRedis
     
     app = Flask(__name__)
     
-    rdb = FlaskRedislite(app)
+    rdb = FlaskRedis(app)
     # with redis-collections:
-    # rdb = FlaskRedislite(app, collection = True)
+    # rdb = FlaskRedis(app, collection = True)
     
 Then use it on your view
 
@@ -60,11 +58,11 @@ To use Flask-Redislite with RQ, you need to start RQ worker as a new process
 .. code-block:: python
 
     from flask import Flask
-    from flask_redislite import FlaskRedislite
+    from flask_redislite import FlaskRedis
 
     app = Flask(__name__)
 
-    rdb = FlaskRedislite(app, rq=True)
+    rdb = FlaskRedis(app, rq=True)
 
     # Your other extensions load here
     # ex: lm = LoginManager()

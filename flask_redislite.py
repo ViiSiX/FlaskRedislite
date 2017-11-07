@@ -16,7 +16,7 @@ from redis_collections import Dict as RC_Dict, List as RC_List
 from rq import Queue, Worker
 
 
-__version__ = '0.1.0rc0'
+__version__ = '0.1.1'
 
 
 try:
@@ -39,7 +39,7 @@ def worker_wrapper(worker_instance, pid_path):
         Remove pid file on exit
         """
         if len(args) > 0:
-            print "Exit py signal {signal}".format(signal=args[0])
+            print("Exit py signal {signal}".format(signal=args[0]))
         remove(pid_path)
 
     atexit.register(exit_handler)
@@ -187,7 +187,7 @@ class FlaskRedis(object):
         try:
             worker_pid_file = open(worker_pid_path, 'r')
             worker_pid = int(worker_pid_file.read())
-            print "Worker already started with PID=%d" % worker_pid
+            print("Worker already started with PID=%d" % worker_pid)
             worker_pid_file.close()
 
             return worker_pid
@@ -202,8 +202,8 @@ class FlaskRedis(object):
             worker_pid_file.write("%d" % self.worker_process.pid)
             worker_pid_file.close()
 
-            print "Start a worker process with PID=%d" % \
-                  self.worker_process.pid
+            print("Start a worker process with PID=%d" %
+                  self.worker_process.pid)
 
             return self.worker_process.pid
 

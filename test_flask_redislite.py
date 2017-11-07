@@ -121,7 +121,7 @@ def test_redis_set_get(app):
 
     with app.app_context():
         rdb.connection.set('foo1', 'aiKjq91jUyq3r')
-        assert rdb.connection.get('foo1') == 'aiKjq91jUyq3r'
+        assert rdb.connection.get('foo1').decode('utf8') == 'aiKjq91jUyq3r'
 
 
 def test_redis_collections(app):
