@@ -1,6 +1,11 @@
 History
 =======
 
+0.1.1 (07/11/2017)
+------------------
+- Update README.rst
+- Upgrade library
+
 0.1.0 (31/8/2016)
 -----------------
 - Support multiple queue

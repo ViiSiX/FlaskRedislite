@@ -4,8 +4,8 @@ Flask-Redislite
 
 Using Flask with Redislite
 """
+import re
 import io
-from sys import version
 from setuptools import setup
 
 with io.open('README.rst', encoding='utf-8') as f:
@@ -13,13 +13,14 @@ with io.open('README.rst', encoding='utf-8') as f:
 with io.open('HISTORY.rst', encoding='utf-8') as f:
     description += "\n\n%s" % f.read()
 
-
-assert int(version[0]) >= 2 and int(version[2]) > 6
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+with open('flask_redislite.py', 'rb') as f:
+    version = str(_version_re.search(f.read().decode('utf-8')).group(1))
 
 
 setup(
     name='Flask-Redislite',
-    version='0.1.0rc0',
+    version=version,
     url='https://github.com/scattm/FlaskRedislite',
     download_url='https://github.com/scattm/FlaskRedislite',
     license='MIT',
@@ -47,6 +48,8 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Database',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
